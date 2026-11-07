@@ -132,7 +132,7 @@ footer{text-align:center;color:var(--muted);font-size:.88rem;padding:0 16px 150p
 
 <script>
 /* ===== CONFIGURAÇÃO (só estas duas linhas precisam de ajuste) ===== */
-var SHEET_URL = "https://docs.google.com/spreadsheets/d/1bNEc8gO-WzRAd5lK7zMhzE2H8T0FAwAzj9esaEEIlT8/edit?usp=drivesdk"; // cole aqui o link CSV da planilha publicada na web
+var SHEET_URL = "https://docs.google.com/spreadsheets/d/1bNEc8gO-WzRAd5lK7zMhzE2H8T0FAwAzj9esaEEIlT8/edit?usp=drivesdk"; // link da planilha do Google (aceita o de compartilhar, o de editar ou o publicado)
 var WA = "5564993381181";        // WhatsApp da Melyssa com DDI e DDD, ex.: 5511999999999
 /* ================================================================== */
 
@@ -204,12 +204,13 @@ function foto(u){
   return /^https?:\/\//.test(u) ? u : "";
 }
 function build(text){
-  var rows = parseCSV(text).filter(function(r){ return r.join("").trim(); });
-  if (rows.length<2) return [];
-  var h = rows[0].map(norm), seen = {};
+  var rows = parseCSV(text).filter(function(r){ return r.join("").trim(); }), hi = -1, k, hn;
+  for (k=0; k<Math.min(rows.length,5) && hi<0; k++){ hn = rows[k].map(norm); if (hn.indexOf("nome")>-1 && hn.indexOf("preco")>-1) hi = k; }
+  if (hi<0) return null;
+  var h = rows[hi].map(norm), seen = {};
   function ix(n){ return h.indexOf(n); }
   var C = {nome:ix("nome"),preco:ix("preco"),tipo:ix("tipo"),rar:ix("raridade"),lote:ix("lote"),foto:ix("foto"),st:ix("status")};
-  return rows.slice(1).map(function(r,n){
+  return rows.slice(hi+1).map(function(r,n){
     function g(k){ return C[k]>-1 ? String(r[C[k]]||"").trim() : ""; }
     var name = g("nome"), price = num(g("preco"));
     if (!name || price===null) return null;
@@ -278,46 +279,3 @@ function renderCart(){
 }
 function toggle(id){
   var p = state.cart.indexOf(id);
-  if (p>-1) state.cart.splice(p,1); else state.cart.push(id);
-  renderGrid(); renderCart();
-}
-function drawer(open){ $("drawer").classList.toggle("open", open); }
-
-function setItems(list){
-  items = list.sort(function(a,b){ return (a.sold-b.sold) || (a.ord-b.ord); });
-  FILTERS = makeFilters();
-  state.cart = state.cart.filter(function(id){ var i = byId(id); return i && !i.sold; });
-  renderChips(); renderGrid(); renderCart();
-}
-function load(){
-  $("grid").innerHTML = '<div class="empty">Carregando cartas…</div>';
-  if (!SHEET_URL){ setItems(build(DEMO)); return; }
-  fetch(SHEET_URL+(SHEET_URL.indexOf("?")>-1?"&":"?")+"_="+Date.now())
-    .then(function(r){ if (!r.ok) throw new Error("http"); return r.text(); })
-    .then(function(t){ try { localStorage.setItem("melyssa-cache", t); } catch(e) {} setItems(build(t)); })
-    .catch(function(){
-      var c = null; try { c = localStorage.getItem("melyssa-cache"); } catch(e) {}
-      if (c) setItems(build(c));
-      else $("grid").innerHTML = '<div class="empty">Não foi possível carregar as cartas.<br><button data-retry="1">Tentar de novo</button></div>';
-    });
-}
-
-$("chips").addEventListener("click", function(e){ var b=e.target.closest("[data-f]"); if(!b) return; state.f=b.dataset.f; renderChips(); renderGrid(); });
-$("grid").addEventListener("click", function(e){
-  var b = e.target.closest("[data-id]"); if (b) return toggle(b.dataset.id);
-  if (e.target.closest("[data-retry]")) return load();
-  if (e.target.closest("[data-reset]")){ state.f="all"; state.q=""; $("q").value=""; renderChips(); renderGrid(); }
-});
-$("lines").addEventListener("click", function(e){ var b=e.target.closest("[data-rm]"); if(b) toggle(b.dataset.rm); });
-$("q").addEventListener("input", function(e){ state.q=e.target.value; renderGrid(); });
-$("sort").addEventListener("change", function(e){ state.s=e.target.value; renderGrid(); });
-$("open").addEventListener("click", function(){ drawer(true); });
-$("fab").addEventListener("click", function(){ drawer(true); });
-$("close").addEventListener("click", function(){ drawer(false); });
-$("scrim").addEventListener("click", function(){ drawer(false); });
-document.addEventListener("keydown", function(e){ if (e.key=="Escape") drawer(false); });
-
-load();
-</script>
-</body>
-</html>
