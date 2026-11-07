@@ -203,8 +203,9 @@ function foto(u){
   if (m) return "https://drive.google.com/thumbnail?id="+m[1]+"&sz=w600";
   return /^https?:\/\//.test(u) ? u : "";
 }
-function build(text){
-  var rows = parseCSV(text).filter(function(r){ return r.join("").trim(); }), hi = -1, k, hn;
+function build(text){ return buildRows(parseCSV(text)); }
+function buildRows(all){
+  var rows = all.filter(function(r){ return r.join("").trim(); }), hi = -1, k, hn;
   for (k=0; k<Math.min(rows.length,5) && hi<0; k++){ hn = rows[k].map(norm); if (hn.indexOf("nome")>-1 && hn.indexOf("preco")>-1) hi = k; }
   if (hi<0) return null;
   var h = rows[hi].map(norm), seen = {};
@@ -279,3 +280,86 @@ function renderCart(){
 }
 function toggle(id){
   var p = state.cart.indexOf(id);
+  if (p>-1) state.cart.splice(p,1); else state.cart.push(id);
+  renderGrid(); renderCart();
+}
+function drawer(open){ $("drawer").classList.toggle("open", open); }
+
+function setItems(list){
+  items = list.sort(function(a,b){ return (a.sold-b.sold) || (a.ord-b.ord); });
+  FILTERS = makeFilters();
+  state.cart = state.cart.filter(function(id){ var i = byId(id); return i && !i.sold; });
+  renderChips(); renderGrid(); renderCart();
+}
+function candidates(u){
+  var out = [], gid = (u.match(/[?&#]gid=(\d+)/)||[])[1], g = gid ? "&gid="+gid : "";
+  var e = u.match(/\/spreadsheets\/d\/e\/([\w-]+)/), d = !e && u.match(/\/spreadsheets\/d\/([\w-]+)/);
+  var base = d ? "https://docs.google.com/spreadsheets/d/"+d[1] : "";
+  if (/output=csv|\.csv(\?|$)/.test(u)) out.push({u:u});
+  if (e) out.push({u:"https://docs.google.com/spreadsheets/d/e/"+e[1]+"/pub?output=csv"+g});
+  else if (d){
+    out.push({j:1, u:base+"/gviz/tq?tqx=out:json;responseHandler:__CB__"+g});
+    out.push({u:base+"/gviz/tq?tqx=out:csv"+g});
+    out.push({u:base+"/export?format=csv"+g});
+  } else if (!out.length) out.push({u:u});
+  return out.filter(function(x,i){ return out.map(function(y){return y.u}).indexOf(x.u)==i; });
+}
+// Carrega a tabela por <script> (não depende de CORS); a planilha precisa estar como "Qualquer pessoa com o link"
+function jsonp(u){
+  return new Promise(function(ok,no){
+    var cb = "_ml"+Date.now(), s = document.createElement("script"), t;
+    function done(){ clearTimeout(t); try { delete window[cb]; } catch(e) { window[cb] = undefined; } if (s.parentNode) s.parentNode.removeChild(s); }
+    t = setTimeout(function(){ done(); no(new Error("tempo esgotado")); }, 8000);
+    window[cb] = function(r){ done(); ok(r); };
+    s.onerror = function(){ done(); no(new Error("bloqueado")); };
+    s.src = u.replace("__CB__", cb);
+    document.head.appendChild(s);
+  });
+}
+function tableRows(r){
+  if (!r || r.status=="error" || !r.table) throw new Error(r && r.errors && r.errors[0] ? (r.errors[0].reason||"erro do Google") : "resposta inválida");
+  var rows = [r.table.cols.map(function(c){ return c.label||""; })];
+  r.table.rows.forEach(function(row){
+    rows.push((row.c||[]).map(function(c){ return !c ? "" : (typeof c.v=="number" ? String(c.v) : (c.f!=null ? c.f : (c.v==null ? "" : String(c.v)))); }));
+  });
+  return rows;
+}
+function fail(why){
+  var l = null; try { l = buildRows(JSON.parse(localStorage.getItem("melyssa-cache"))); } catch(e) {}
+  if (l && l.length) return setItems(l);
+  $("grid").innerHTML = '<div class="empty">Não foi possível carregar as cartas.<br><button data-retry="1">Tentar de novo</button><small style="display:block;margin-top:14px;opacity:.7">'+esc(why.join(" | "))+'</small></div>';
+  if (window.console) console.warn("Melyssa:", why);
+}
+function load(){
+  $("grid").innerHTML = '<div class="empty">Carregando cartas…</div>';
+  if (!SHEET_URL){ setItems(build(DEMO)); return; }
+  var list = candidates(SHEET_URL), why = [];
+  (function next(n){
+    if (n>=list.length) return fail(why);
+    var c = list[n], p = c.j ? jsonp(c.u).then(tableRows)
+      : fetch(c.u+(c.u.indexOf("?")>-1?"&":"?")+"_="+Date.now()).then(function(r){ if (!r.ok) throw new Error("erro "+r.status); return r.text(); }).then(parseCSV);
+    p.then(function(rows){ var l = buildRows(rows); if (l===null) throw new Error("tabela sem as colunas nome e preco"); return {rows:rows, l:l}; })
+     .then(function(x){ try { localStorage.setItem("melyssa-cache", JSON.stringify(x.rows)); } catch(e) {} setItems(x.l); },
+           function(e){ why.push((n+1)+": "+(e && e.message && e.message!="Failed to fetch" ? e.message : "bloqueado")); next(n+1); });
+  })(0);
+}
+
+$("chips").addEventListener("click", function(e){ var b=e.target.closest("[data-f]"); if(!b) return; state.f=b.dataset.f; renderChips(); renderGrid(); });
+$("grid").addEventListener("click", function(e){
+  var b = e.target.closest("[data-id]"); if (b) return toggle(b.dataset.id);
+  if (e.target.closest("[data-retry]")) return load();
+  if (e.target.closest("[data-reset]")){ state.f="all"; state.q=""; $("q").value=""; renderChips(); renderGrid(); }
+});
+$("lines").addEventListener("click", function(e){ var b=e.target.closest("[data-rm]"); if(b) toggle(b.dataset.rm); });
+$("q").addEventListener("input", function(e){ state.q=e.target.value; renderGrid(); });
+$("sort").addEventListener("change", function(e){ state.s=e.target.value; renderGrid(); });
+$("open").addEventListener("click", function(){ drawer(true); });
+$("fab").addEventListener("click", function(){ drawer(true); });
+$("close").addEventListener("click", function(){ drawer(false); });
+$("scrim").addEventListener("click", function(){ drawer(false); });
+document.addEventListener("keydown", function(e){ if (e.key=="Escape") drawer(false); });
+
+load();
+</script>
+</body>
+</html>
