@@ -1,14 +1,14 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Melyssa – Cartas Pokémon</title>
-<meta name="description" content="Cartas Pokémon à venda. Escolha as suas e finalize pelo WhatsApp.">
-<meta property="og:title" content="Melyssa – Cartas Pokémon">
-<meta property="og:description" content="Cartas Pokémon à venda. Escolha as suas e finalize pelo WhatsApp.">
+<title>Melyssa - Cartas Pokemon</title>
+<meta name="description" content="Cartas Pokemon a venda. Escolha as suas e finalize pelo WhatsApp.">
+<meta property="og:title" content="Melyssa - Cartas Pokemon">
+<meta property="og:description" content="Cartas Pokemon a venda. Escolha as suas e finalize pelo WhatsApp.">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%A1</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -96,83 +96,84 @@ footer{text-align:center;color:var(--muted);font-size:.88rem;padding:0 16px 150p
 <body>
 <header>
   <div class="logo">Melyssa</div>
-  <label class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="Buscar carta ou preço" aria-label="Buscar carta ou preço"></label>
-  <button class="cartbtn" id="open" aria-label="Abrir carrinho">🛒<span id="n" data-n="0"></span></button>
+  <label class="search"><span aria-hidden="true">&#128269;</span><input id="q" type="search" placeholder="Buscar carta ou preco" aria-label="Buscar carta ou preco"></label>
+  <button class="cartbtn" id="open" aria-label="Abrir carrinho">&#128722;<span id="n" data-n="0"></span></button>
 </header>
 
 <section class="hero"><div>
-  <h1>Cartas Pokémon prontas para a sua coleção</h1>
-  <p>Cada carta é uma peça única. Escolha as que quer, monte o carrinho e finalize pelo WhatsApp.</p>
-  <div class="perks"><span>Peças únicas</span><span>Pagamento via Pix</span><span>Envio combinado no WhatsApp</span></div>
+  <h1>Cartas Pokemon prontas para a sua colecao</h1>
+  <p>Cada carta e uma peca unica. Escolha as que quer, monte o carrinho e finalize pelo WhatsApp.</p>
+  <div class="perks"><span>Pecas unicas</span><span>Pagamento via Pix</span><span>Envio combinado no WhatsApp</span></div>
 </div></section>
 
 <main>
   <div class="chips" id="chips" role="group" aria-label="Filtros"></div>
   <div class="bar"><span id="count"></span>
-    <label>Ordenar <select id="sort"><option value="0">Mais recentes</option><option value="1">Menor preço</option><option value="2">Maior preço</option></select></label>
+    <label>Ordenar <select id="sort"><option value="0">Mais recentes</option><option value="1">Menor preco</option><option value="2">Maior preco</option></select></label>
   </div>
   <div class="mat"><div class="grid" id="grid"></div></div>
 </main>
-<footer>Melyssa – preços e disponibilidade confirmados no WhatsApp.</footer>
+<footer>Melyssa - precos e disponibilidade confirmados no WhatsApp.</footer>
 
 <button class="fab" id="fab"><span id="fabn"></span><span id="fabt"></span></button>
 
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Carrinho">
   <div class="scrim" id="scrim"></div>
   <div class="panel">
-    <header><h2>Seu carrinho</h2><button class="x" id="close" aria-label="Fechar carrinho">✕</button></header>
+    <header><h2>Seu carrinho</h2><button class="x" id="close" aria-label="Fechar carrinho">&#10005;</button></header>
     <div class="lines" id="lines"></div>
     <div class="sum">
       <div class="tot"><span>Total</span><span id="total"></span></div>
       <a class="wa" id="wa" target="_blank" rel="noopener">Finalizar pelo WhatsApp</a>
-      <p class="note">Você confirma pagamento e envio direto na conversa.</p>
+      <p class="note">Voce confirma pagamento e envio direto na conversa.</p>
     </div>
   </div>
 </div>
 
 <script>
-/* ===== CONFIGURAÇÃO (só estas duas linhas precisam de ajuste) ===== */
+/* ===== CONFIGURACAO (so estas duas linhas precisam de ajuste) ===== */
 var SHEET_URL = "https://docs.google.com/spreadsheets/d/1bNEc8gO-WzRAd5lK7zMhzE2H8T0FAwAzj9esaEEIlT8/edit?usp=drivesdk"; // link da planilha do Google (aceita o de compartilhar, o de editar ou o publicado)
 var WA = "5564993381181";        // WhatsApp da Melyssa com DDI e DDD, ex.: 5511999999999
 /* ================================================================== */
 
-// Cartas de exemplo: usadas só enquanto SHEET_URL estiver vazio
+// Cartas de exemplo: usadas so enquanto SHEET_URL estiver vazio
 var DEMO = `"nome","preco","tipo","raridade","lote","foto","status"
-"Flamejo Rubro","42,99","Fogo","Ilustração rara","Lote 1","","disponível"
-"Brasalagarto","72,90","Fogo","Rara holo","Lote 1","","disponível"
-"Folhágil","46,99","Planta","Ilustração rara","Lote 1","","disponível"
-"Musgolino","7,74","Planta","Comum","Lote 1","","disponível"
-"Marélio","40,00","Água","Rara holo","Lote 1","","disponível"
-"Cascatinha","26,99","Água","Ilustração rara","Lote 1","","disponível"
-"Faíscor","55,90","Raio","Rara holo","Lote 1","","disponível"
-"Trovão Dourado","330,00","Raio","Ultra rara","Lote 1","","disponível"
-"Lumiboo","19,00","Psíquico","Incomum","Lote 1","","disponível"
-"Névoa Mística","20,00","Psíquico","Incomum","Lote 1","","disponível"
-"Corvo da Meia-Noite","33,99","Sombrio","Ilustração rara","Lote 1","","disponível"
-"Umbralis","28,85","Sombrio","Rara holo","Lote 1","","disponível"
-"Dracoluz","37,89","Fogo","Rara holo","Lote 1","","disponível"
-"Pirilampo Real","20,00","Raio","Incomum","Lote 1","","disponível"
-"Bolhinha","14,55","Água","Comum","Lote 2","","disponível"
-"Rei Abissal","317,75","Água","Ultra rara","Lote 2","","vendida"
-"Cipoalado","40,00","Planta","Rara holo","Lote 2","","disponível"
-"Pétala Veloz","34,90","Planta","Rara holo","Lote 2","","disponível"
-"Chamarola","32,00","Fogo","Rara holo","Lote 2","","disponível"
-"Sonhato","69,89","Psíquico","Ilustração rara","Lote 2","","disponível"
-"Lunarina","59,90","Psíquico","Ilustração rara","Lote 2","","disponível"
-"Zephyra","41,90","Raio","Rara holo","Lote 2","","disponível"
-"Cristalune","37,99","Psíquico","Rara holo","Lote 2","","disponível"
-"Ventinho","20,00","Planta","Incomum","Lote 2","","disponível"
-"Sombrinha","15,25","Sombrio","Comum","Lote 2","","disponível"
-"Draconoite","87,66","Sombrio","Ultra rara","Lote 2","","disponível"
-"Gotilha","14,90","Água","Comum","Lote 2","","disponível"
-"Ígnito","42,00","Fogo","Rara holo","Lote 2","","disponível"`;
+"Flamejo Rubro","42,99","Fogo","Ilustracao rara","Lote 1","","disponivel"
+"Brasalagarto","72,90","Fogo","Rara holo","Lote 1","","disponivel"
+"Folhagil","46,99","Planta","Ilustracao rara","Lote 1","","disponivel"
+"Musgolino","7,74","Planta","Comum","Lote 1","","disponivel"
+"Marelio","40,00","Agua","Rara holo","Lote 1","","disponivel"
+"Cascatinha","26,99","Agua","Ilustracao rara","Lote 1","","disponivel"
+"Faiscor","55,90","Raio","Rara holo","Lote 1","","disponivel"
+"Trovao Dourado","330,00","Raio","Ultra rara","Lote 1","","disponivel"
+"Lumiboo","19,00","Psiquico","Incomum","Lote 1","","disponivel"
+"Nevoa Mistica","20,00","Psiquico","Incomum","Lote 1","","disponivel"
+"Corvo da Meia-Noite","33,99","Sombrio","Ilustracao rara","Lote 1","","disponivel"
+"Umbralis","28,85","Sombrio","Rara holo","Lote 1","","disponivel"
+"Dracoluz","37,89","Fogo","Rara holo","Lote 1","","disponivel"
+"Pirilampo Real","20,00","Raio","Incomum","Lote 1","","disponivel"
+"Bolhinha","14,55","Agua","Comum","Lote 2","","disponivel"
+"Rei Abissal","317,75","Agua","Ultra rara","Lote 2","","vendido"
+"Cipoalado","40,00","Planta","Rara holo","Lote 2","","disponivel"
+"Petala Veloz","34,90","Planta","Rara holo","Lote 2","","disponivel"
+"Chamarola","32,00","Fogo","Rara holo","Lote 2","","disponivel"
+"Sonhato","69,89","Psiquico","Ilustracao rara","Lote 2","","disponivel"
+"Lunarina","59,90","Psiquico","Ilustracao rara","Lote 2","","disponivel"
+"Zephyra","41,90","Raio","Rara holo","Lote 2","","disponivel"
+"Cristalune","37,99","Psiquico","Rara holo","Lote 2","","disponivel"
+"Ventinho","20,00","Planta","Incomum","Lote 2","","disponivel"
+"Sombrinha","15,25","Sombrio","Comum","Lote 2","","disponivel"
+"Draconoite","87,66","Sombrio","Ultra rara","Lote 2","","disponivel"
+"Gotilha","14,90","Agua","Comum","Lote 2","","disponivel"
+"Ignito","42,00","Fogo","Rara holo","Lote 2","","disponivel"`;
 
-var TIPOS = {fogo:["🔥",12],agua:["💧",205],planta:["🌿",125],raio:["⚡",46],eletrico:["⚡",46],psiquico:["🔮",285],sombrio:["🌙",245],lutador:["🥊",18],metal:["⚙️",215],dragao:["🐉",165],fada:["✨",320],normal:["⭐",40]};
+var TIPOS = {fogo:["\uD83D\uDD25",12],agua:["\uD83D\uDCA7",205],planta:["\uD83C\uDF3F",125],raio:["\u26A1",46],eletrico:["\u26A1",46],psiquico:["\uD83D\uDD2E",285],sombrio:["\uD83C\uDF19",245],lutador:["\uD83E\uDD4A",18],metal:["\u2699\uFE0F",215],dragao:["\uD83D\uDC09",165],fada:["\u2728",320],normal:["\u2B50",40]};
 var items = [], FILTERS = [], state = {f:"all", q:"", s:"0", cart:[]};
 try { var sv = JSON.parse(localStorage.getItem("melyssa-cart")||"[]"); if (Array.isArray(sv)) state.cart = sv; } catch(e) {}
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return "&#"+c.charCodeAt(0)+";"; }); }
+function plain(s){ return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
 function norm(s){ return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase(); }
 function brl(v){ return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
 function byId(id){ return items.filter(function(i){return i.id==id})[0]; }
@@ -213,21 +214,21 @@ function buildRows(all){
   var C = {nome:ix("nome"),preco:ix("preco"),tipo:ix("tipo"),rar:ix("raridade"),lote:ix("lote"),foto:ix("foto"),st:ix("status")};
   return rows.slice(hi+1).map(function(r,n){
     function g(k){ return C[k]>-1 ? String(r[C[k]]||"").trim() : ""; }
-    var name = g("nome"), price = num(g("preco"));
+    var name = plain(g("nome")), price = num(g("preco"));
     if (!name || price===null) return null;
-    var t = TIPOS[norm(g("tipo"))] || ["🃏",(name.length*47)%360];
+    var t = TIPOS[norm(g("tipo"))] || ["\uD83C\uDCCF",(name.length*47)%360];
     var id = norm(name); seen[id] = (seen[id]||0)+1; if (seen[id]>1) id += "-"+seen[id];
-    var lote = g("lote"); if (/^\d+$/.test(lote)) lote = "Lote "+lote;
-    return {id:id, ord:n, name:name, price:price, tipo:g("tipo"), rar:g("rar"), lote:lote, img:foto(g("foto")),
-      sold:/vend|reserv|esgot|indisp/.test(norm(g("st"))), icon:t[0], hue:(t[1]+(name.length*7)%30)%360};
+    var lote = plain(g("lote")); if (/^\d+$/.test(lote)) lote = "Lote "+lote;
+    return {id:id, ord:n, name:name, price:price, tipo:plain(g("tipo")), rar:plain(g("rar")), lote:lote, img:foto(g("foto")),
+      sold:/vend/.test(norm(g("st"))), icon:t[0], hue:(t[1]+(name.length*7)%30)%360};
   }).filter(Boolean);
 }
 function makeFilters(){
   var f = [["all","Todas",function(){return true}]], lotes = [];
-  if (items.some(function(i){return i.sold})) f.push(["av","Disponíveis",function(i){return !i.sold}]);
+  if (items.some(function(i){return i.sold})) f.push(["av","Disponiveis",function(i){return !i.sold}]);
   items.forEach(function(i){ if (i.lote && lotes.indexOf(i.lote)<0) lotes.push(i.lote); });
   if (lotes.length>1) lotes.forEach(function(l){ f.push(["l:"+l,l,function(i){return i.lote==l}]); });
-  f.push(["p20","Até R$ 20",function(i){return i.price<=20}],
+  f.push(["p20","Ate R$ 20",function(i){return i.price<=20}],
          ["p50","R$ 20 a R$ 50",function(i){return i.price>20&&i.price<=50}],
          ["p51","Acima de R$ 50",function(i){return i.price>50}]);
   return f;
@@ -253,12 +254,12 @@ function renderGrid(){
   if (state.s=="1") list.sort(function(a,b){return a.price-b.price});
   if (state.s=="2") list.sort(function(a,b){return b.price-a.price});
   $("count").textContent = list.length + (list.length==1 ? " carta" : " cartas");
-  if (!items.length){ $("grid").innerHTML = '<div class="empty">Nenhuma carta à venda no momento. Volte em breve!</div>'; return; }
+  if (!items.length){ $("grid").innerHTML = '<div class="empty">Nenhuma carta a venda no momento. Volte em breve!</div>'; return; }
   if (!list.length){ $("grid").innerHTML = '<div class="empty">Nenhuma carta encontrada com esses filtros.<br><button data-reset="1">Ver todas as cartas</button></div>'; return; }
   $("grid").innerHTML = list.map(function(i){
     var on = state.cart.indexOf(i.id)>-1;
     return '<article class="card'+(i.sold?' sold':'')+'">'+artHTML(i,true)+
-      '<div class="name">'+esc(i.name)+'<em>'+esc([i.tipo,i.rar].filter(Boolean).join(" – "))+'</em></div>'+
+      '<div class="name">'+esc(i.name)+'<em>'+esc([i.tipo,i.rar].filter(Boolean).join(" - "))+'</em></div>'+
       (i.sold?'<button class="add" disabled>Vendida</button>':'<button class="add" data-id="'+esc(i.id)+'" aria-pressed="'+on+'">'+(on?"No carrinho":"Adicionar ao carrinho")+'</button>')+'</article>';
   }).join("");
 }
@@ -270,9 +271,9 @@ function renderCart(){
   $("fabn").textContent = "Ver carrinho ("+n+(n==1?" carta)":" cartas)");
   $("fabt").textContent = brl(total); $("total").textContent = brl(total);
   $("lines").innerHTML = n ? sel.map(function(i){
-    return '<div class="line">'+artHTML(i,false)+'<div class="t"><b>'+esc(i.name)+'</b><span>'+(i.lote?esc(i.lote)+' – ':'')+brl(i.price)+'</span></div><button data-rm="'+esc(i.id)+'">Remover</button></div>';
-  }).join("") : '<p class="note" style="padding:30px 0">Seu carrinho está vazio. Adicione cartas para montar o pedido.</p>';
-  var msg = "Olá! Quero reservar estas cartas:\n"+sel.map(function(i){return "- "+i.name+(i.lote?" ("+i.lote+")":"")+" – "+brl(i.price)}).join("\n")+"\nTotal: "+brl(total);
+    return '<div class="line">'+artHTML(i,false)+'<div class="t"><b>'+esc(i.name)+'</b><span>'+(i.lote?esc(i.lote)+' - ':'')+brl(i.price)+'</span></div><button data-rm="'+esc(i.id)+'">Remover</button></div>';
+  }).join("") : '<p class="note" style="padding:30px 0">Seu carrinho esta vazio. Adicione cartas para montar o pedido.</p>';
+  var msg = "Ola! Quero reservar estas cartas:\n"+sel.map(function(i){return "- "+i.name+(i.lote?" ("+i.lote+")":"")+" - "+brl(i.price)}).join("\n")+"\nTotal: "+brl(total);
   var wa = $("wa");
   wa.href = "https://wa.me/"+WA+"?text="+encodeURIComponent(msg);
   wa.setAttribute("aria-disabled", n ? "false" : "true");
@@ -304,7 +305,7 @@ function candidates(u){
   } else if (!out.length) out.push({u:u});
   return out.filter(function(x,i){ return out.map(function(y){return y.u}).indexOf(x.u)==i; });
 }
-// Carrega a tabela por <script> (não depende de CORS); a planilha precisa estar como "Qualquer pessoa com o link"
+// Carrega a tabela por <script> (nao depende de CORS); a planilha precisa estar como "Qualquer pessoa com o link"
 function jsonp(u){
   return new Promise(function(ok,no){
     var cb = "_ml"+Date.now(), s = document.createElement("script"), t;
@@ -317,7 +318,7 @@ function jsonp(u){
   });
 }
 function tableRows(r){
-  if (!r || r.status=="error" || !r.table) throw new Error(r && r.errors && r.errors[0] ? (r.errors[0].reason||"erro do Google") : "resposta inválida");
+  if (!r || r.status=="error" || !r.table) throw new Error(r && r.errors && r.errors[0] ? (r.errors[0].reason||"erro do Google") : "resposta invalida");
   var rows = [r.table.cols.map(function(c){ return c.label||""; })];
   r.table.rows.forEach(function(row){
     rows.push((row.c||[]).map(function(c){ return !c ? "" : (typeof c.v=="number" ? String(c.v) : (c.f!=null ? c.f : (c.v==null ? "" : String(c.v)))); }));
@@ -327,11 +328,11 @@ function tableRows(r){
 function fail(why){
   var l = null; try { l = buildRows(JSON.parse(localStorage.getItem("melyssa-cache"))); } catch(e) {}
   if (l && l.length) return setItems(l);
-  $("grid").innerHTML = '<div class="empty">Não foi possível carregar as cartas.<br><button data-retry="1">Tentar de novo</button><small style="display:block;margin-top:14px;opacity:.7">'+esc(why.join(" | "))+'</small></div>';
+  $("grid").innerHTML = '<div class="empty">Nao foi possivel carregar as cartas.<br><button data-retry="1">Tentar de novo</button><small style="display:block;margin-top:14px;opacity:.7">'+esc(why.join(" | "))+'</small></div>';
   if (window.console) console.warn("Melyssa:", why);
 }
 function load(){
-  $("grid").innerHTML = '<div class="empty">Carregando cartas…</div>';
+  $("grid").innerHTML = '<div class="empty">Carregando cartas...</div>';
   if (!SHEET_URL){ setItems(build(DEMO)); return; }
   var list = candidates(SHEET_URL), why = [];
   (function next(n){
